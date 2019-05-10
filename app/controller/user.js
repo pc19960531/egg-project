@@ -2,24 +2,9 @@
 
 const Controller = require('./base_controller');
 const moment = require('moment');
+const { ROLE } = require('../constants/constants');
 
 class UserController extends Controller {
-  // async register(ctx) {
-  //   try {
-  //     this.success('123');
-  //   } catch (e) {
-  //     this.error(e.message);
-  //   }
-  // }
-
-  // async updateUser(ctx) {
-  //   try {
-  //     const params = ctx.request.body;
-  //     await this.service.user.updateUser(params.user_name, params.password);
-  //   } catch (e) {
-  //     this.error(e.message);
-  //   }
-  // }
 
   async login(ctx) {
     try {
@@ -32,7 +17,17 @@ class UserController extends Controller {
         token,
       });
     } catch (e) {
-      this.error(e.message);
+      this.error(e);
+    }
+  }
+
+  async loginOut(ctx) {
+    try {
+      const token = this.getAuthorization(ctx);
+      await this.service.user.delLoginUser(token);
+      this.success('退出成功');
+    } catch (e) {
+      this.error(e);
     }
   }
 
@@ -44,7 +39,7 @@ class UserController extends Controller {
       }
       this.error('注册失败');
     } catch (e) {
-      this.error(e.message);
+      this.error(e);
     }
   }
 
@@ -65,6 +60,36 @@ class UserController extends Controller {
       }
     }
   }
+
+  async addAccount(ctx) {
+    try {
+      const params = ctx.request.body;
+      const JwtUser = await this.checkLogin(ctx, ROLE.SUPER_MANAGE, ROLE.COMMON_MANAGE);
+      await this.service.user.registerByUserName(params.user_name, params.password);
+      this.success('新增成功');
+    } catch (err) {
+      this.error(err);
+    }
+  }
+
+  async getUser(ctx) {
+    try {
+      const JwtUser = await this.checkLogin(ctx, ROLE.SUPER_MANAGE, ROLE.COMMON_MANAGE);
+      const { id, user_name, role_code, role_name } = JwtUser;
+      this.success({
+        id,
+        user_name,
+        permissions: {
+          role: role_name,
+          visit: [ 1, 2 ].map(_ => _.toString()),
+        },
+      });
+    } catch (err) {
+      this.error(err);
+    }
+  }
+
+
 }
 
 module.exports = UserController;

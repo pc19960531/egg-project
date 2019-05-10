@@ -2,7 +2,7 @@
 
 const Service = require('egg').Service;
 const tableMaps = require('../maps/maps');
-const { prefixs } = require('../constants/constants');
+const { PREFIXS } = require('../constants/constants');
 const { filterParams } = require('../utils/query-strings');
 const moment = require('moment');
 
@@ -65,8 +65,19 @@ class BaseService extends Service {
     return result.affectedRows === 1;
   }
 
-  async selectList() {
-    return;
+  async selectList(data, condition = [ 'id' ]) {
+    const filterData = filterParams(tableMaps[this.table], data);
+    const whereCondition = filterParams(condition, filterData);
+    if (Object.keys(whereCondition).length === 0) {
+      throw new Error(`${this.table} select condition is error`);
+    }
+    const result = await this.app.mysql.select(this.table, whereCondition);
+    return result || '';
+  }
+
+  async queryList() {
+    const result = await this.app.mysql.select(this.table);
+    return result || '';
   }
 
   async get(data, condition = [ 'id' ]) {
@@ -82,7 +93,7 @@ class BaseService extends Service {
   async getId() {
     const time_prefix = moment().format('YYYYMMDD');
     const _prefix = await this.app.redis.incr(`${this.table}_prefix`);
-    const str = prefixs[this.table] + time_prefix + '000000'.slice(_prefix.toString().length) + _prefix;
+    const str = PREFIXS[this.table] + time_prefix + '000000'.slice(_prefix.toString().length) + _prefix;
     return str;
   }
 

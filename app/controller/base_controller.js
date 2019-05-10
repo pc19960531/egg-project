@@ -1,6 +1,9 @@
 'use strict';
 
 const { Controller } = require('egg');
+const ApplictionError = require('../error/application_error');
+const { CODE } = require('../constants/constants');
+
 class BaseController extends Controller {
 
   success(data) {
@@ -12,36 +15,58 @@ class BaseController extends Controller {
     };
   }
 
-  error(msg) {
-    this.ctx.body = {
+  error({ message, code }) {
+    let returnBody = {
       result: 'fail',
-      message: msg,
       code: '201',
-      data: {},
+      message,
     };
-  }
-
-  authError(msg) {
-    this.ctx.body = {
-      result: 'fail',
-      message: msg,
-      code: '403',
-      data: {},
-    };
-  }
-
-  async transformToken(token) {
-    const user = this.app.jwt.verify(token, this.app.config.jwt.secret);
-    if (user.exp < Math.round(new Date() / 1000)) {
-      await this.app.redis.srem('userInfoToken', token);
-      throw new Error('token过期');
+    if (code === 202) {
+      returnBody = { ...returnBody, code: '202', message: message || '未登录' };
     }
-    return user;
+    if (code === 403) {
+      returnBody = { ...returnBody, code: '403', message: message || '无权限' };
+    }
+    this.ctx.body = returnBody;
+  }
+
+  async getJwtUser(token) {
+    if (!token) {
+      return null;
+    }
+    const user = this.app.jwt.verify(token, this.app.config.jwt.secret);
+    if (user === null) {
+      return null;
+    }
+    if (await this.service.user.checkAuthValid(token, user.exp) && await this.service.user.checkUserIsChange(user, token)) {
+      return user;
+    }
+  }
+
+  async checkLogin(ctx, ...roleList) {
+    const user = await this.getJwtUser(this.getAuthorization(ctx));
+    if (user === null) {
+      throw new ApplictionError(CODE.UN_LOGIN);
+    }
+    const { role_code } = user;
+    for (const key in roleList) {
+      if (role_code === roleList[key].role_code) {
+        return user;
+      }
+    }
+    throw new ApplictionError(CODE.ERROR_AUTH);
+
   }
 
   notFound(msg) {
     msg = msg || 'not found';
     this.ctx.throw(404, msg);
   }
+
+  getAuthorization(ctx) {
+    return ctx.request.header.authorization || '';
+  }
+
+
 }
 module.exports = BaseController;

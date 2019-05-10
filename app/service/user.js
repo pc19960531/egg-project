@@ -3,7 +3,8 @@
 const Service = require('./base_service');
 const moment = require('moment');
 const md5 = require('../utils/md5');
-const { tokenValidTime } = require('../constants/constants');
+const { tokenValidTime, CODE } = require('../constants/constants');
+const ApplicationError = require('../error/application_error');
 
 class UserService extends Service {
   constructor(props) {
@@ -32,9 +33,8 @@ class UserService extends Service {
   }
 
   async createJwt(user_id) {
-    console.log('user_id:' + user_id);
-    const { user_name, role } = await this.get({ id: user_id });
-    const token = this.app.jwt.sign({ id: user_id, user_name, role }, this.app.config.jwt.secret, { expiresIn: tokenValidTime });
+    const { user_name, role_code, role_name } = await this.get({ id: user_id });
+    const token = this.app.jwt.sign({ id: user_id, user_name, role_code, role_name }, this.app.config.jwt.secret, { expiresIn: tokenValidTime });
     this.saveLoginUser(token);
     return token;
   }
@@ -52,6 +52,16 @@ class UserService extends Service {
     if (expTime < Math.round(new Date() / 1000)) {
       await this.app.redis.srem('userInfoToken', token);
       return false;
+    }
+    return true;
+  }
+
+  // 检查用户主要信息是否改变
+  async checkUserIsChange(user, token) {
+    const queryUser = await this.get({ id: user.id });
+    if (queryUser.role_code !== user.role_code) {
+      await this.app.redis.srem('userInfoToken', token);
+      throw new ApplicationError(CODE.UN_LOGIN, '请重新登录');
     }
     return true;
   }
