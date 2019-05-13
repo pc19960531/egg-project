@@ -11,6 +11,9 @@ const filterParams = (keys, paramObject, ary) => keys
   .filter(key => !(ary || excludeArgumentValue).has(paramObject[key]))
   .reduce((p, v) => ({ ...p, [v]: paramObject[v] }), {});
 
+const concatSql = _param => (Object.keys(_param).length > 0 ? 'where ' + Object.keys(_param).map(key => `${key} = ${_param[key]}`).join(' AND ') : '');
+
 module.exports = {
   filterParams,
+  concatSql,
 };

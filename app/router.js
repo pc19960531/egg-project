@@ -5,5 +5,5 @@
  */
 module.exports = app => {
   require('./router/user')(app);
-  require('./router/routes')(app);
+  require('./router/test')(app);
 };

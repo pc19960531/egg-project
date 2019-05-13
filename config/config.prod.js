@@ -11,11 +11,11 @@ module.exports = () => {
       // 端口号
       port: '3306',
       // 用户名
-      user: 'pc',
+      user: 'root',
       // 密码
-      password: 'pengcheng1996',
+      password: '***',
       // 数据库名
-      database: 'jsb',
+      database: '***',
     },
     // 是否加载到 app 上，默认开启
     app: true,
@@ -24,7 +24,7 @@ module.exports = () => {
   };
 
   config.jwt = {
-    secret: 'user_center_prod_0531',
+    secret: 'prod',
   };
 
   return config;

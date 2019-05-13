@@ -67,6 +67,11 @@ class BaseController extends Controller {
     return ctx.request.header.authorization || '';
   }
 
+  checkRequireRule(data, role) {
+    // if (!Array.isArray(role))
+    //   return true;
+  }
+
 
 }
 module.exports = BaseController;

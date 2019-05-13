@@ -3,6 +3,7 @@
 const Controller = require('./base_controller');
 const moment = require('moment');
 const { ROLE } = require('../constants/constants');
+const { checkParams } = require('../utils/rules');
 
 class UserController extends Controller {
 
@@ -88,8 +89,6 @@ class UserController extends Controller {
       this.error(err);
     }
   }
-
-
 }
 
 module.exports = UserController;

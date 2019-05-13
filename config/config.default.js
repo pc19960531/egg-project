@@ -48,7 +48,7 @@ module.exports = appInfo => {
   };
 
   config.jwt = {
-    secret: 'user_center_0531',
+    secret: 'dev',
   };
 
   config.redis = {

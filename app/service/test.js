@@ -2,11 +2,11 @@
 
 const Service = require('./base_service');
 
-class RoutesService extends Service {
+class TestService extends Service {
   constructor(props) {
     super(props);
-    this.table = 'tb_routes';
+    this.table = 'tb_user';
   }
 }
 
-module.exports = RoutesService;
+module.exports = TestService;
