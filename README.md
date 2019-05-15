@@ -119,6 +119,7 @@ module.exports = BaseController;
 ### 本地开发
 
 ```bash
+$ 先启动redis
 $ npm i
 $ npm run dev
 $ open http://localhost:7001/
